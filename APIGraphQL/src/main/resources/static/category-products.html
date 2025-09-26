@@ -1,0 +1,29 @@
+<input id="catId" placeholder="Category ID">
+<button id="btn">Get</button>
+<ul id="list"></ul>
+
+<script>
+document.getElementById('btn').addEventListener('click', () => {
+  const catId = document.getElementById('catId').value;
+  const query = `query($categoryId: ID!){
+    productsByCategory(categoryId: $categoryId) {
+      id title price
+    }
+  }`;
+  fetch('/graphql', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ query, variables: { categoryId: catId }})
+  })
+  .then(r => r.json())
+  .then(r => {
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+    r.data.productsByCategory.forEach(p => {
+      const li = document.createElement('li');
+      li.textContent = `${p.title} - ${p.price}`;
+      list.appendChild(li);
+    });
+  });
+});
+</script>

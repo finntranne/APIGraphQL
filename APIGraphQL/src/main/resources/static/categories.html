@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý Category</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+  <h1 class="mb-4 text-center">Quản lý Category</h1>
+
+  <!-- Create -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">Thêm Category</div>
+    <div class="card-body">
+      <form id="createCatForm" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Tên</label>
+          <input type="text" id="cname" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Hình ảnh</label>
+          <input type="text" id="cimages" class="form-control">
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success">Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Update -->
+  <div class="card mb-4">
+    <div class="card-header bg-warning">Cập nhật Category</div>
+    <div class="card-body">
+      <form id="updateCatForm" class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label">ID</label>
+          <input type="number" id="cid" class="form-control">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Tên</label>
+          <input type="text" id="ucname" class="form-control">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Hình ảnh</label>
+          <input type="text" id="ucimages" class="form-control">
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-warning text-white">Cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="card">
+    <div class="card-header bg-primary text-white">Danh sách Category</div>
+    <div class="card-body">
+      <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Hình ảnh</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="catList"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const endpoint = "/graphql";
+
+  function loadCategories() {
+    const query = `query { categories { id name images } }`;
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query})
+    })
+    .then(res => res.json())
+    .then(res => {
+      const tbody = document.getElementById("catList");
+      tbody.innerHTML = "";
+      res.data.categories.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${c.id}</td>
+          <td>${c.name}</td>
+          <td>${c.images}</td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteCategory(${c.id})">Xóa</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+
+  document.getElementById("createCatForm").onsubmit = e => {
+    e.preventDefault();
+    const mutation = `mutation {
+      createCategory(input: {name:"${cname.value}", images:"${cimages.value}"}) { id name }
+    }`;
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query: mutation})
+    }).then(() => loadCategories());
+  };
+
+  document.getElementById("updateCatForm").onsubmit = e => {
+    e.preventDefault();
+    const mutation = `mutation {
+      updateCategory(id: ${cid.value}, input: {name:"${ucname.value}", images:"${ucimages.value}"}) { id name }
+    }`;
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query: mutation})
+    }).then(() => loadCategories());
+  };
+
+  function deleteCategory(id) {
+    const mutation = `mutation { deleteCategory(id: ${id}) }`;
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query: mutation})
+    }).then(() => loadCategories());
+  }
+
+  loadCategories();
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<form id="frm">
+  <input name="fullname" placeholder="fullname"/><br/>
+  <input name="email" placeholder="email"/><br/>
+  <input name="password" placeholder="password"/><br/>
+  <input name="phone" placeholder="phone"/><br/>
+  <button type="submit">Create</button>
+</form>
+
+<script>
+document.getElementById('frm').addEventListener('submit', e => {
+  e.preventDefault();
+  const form = e.target;
+  const input = {
+    fullname: form.fullname.value,
+    email: form.email.value,
+    password: form.password.value,
+    phone: form.phone.value
+  };
+  const mutation = `mutation($input: CreateUserInput!) {
+    createUser(input: $input) {
+      id fullname email
+    }
+  }`;
+  fetch('/graphql', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ query: mutation, variables: { input }})
+  })
+  .then(r => r.json())
+  .then(res => {
+    alert('Created user id=' + res.data.createUser.id);
+  });
+});
+</script>
